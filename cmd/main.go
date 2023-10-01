@@ -19,27 +19,32 @@ QueueDone - Выполненные задачи
 N - параллельно выполняющиеся задачи
 */
 type App struct {
-	Queue []models.Task
-	QueueRunning []models.Task
-	QueueDone []models.Task
+	Queue map[int]models.Task
+	QueueRunning map[int]models.Task
+	QueueDone map[int]models.Task
 	N int
+	TaskIdx int
 }
 
 func main() {
 	app := App{
         //Queue: make([]models.Task, 0),
-		Queue: make([]models.Task, 0),
-        QueueRunning: make([]models.Task, 0),
-        QueueDone: make([]models.Task, 0),
+		Queue: make(map[int]models.Task, 0),
+        QueueRunning: make(map[int]models.Task, 0),
+        QueueDone: make(map[int]models.Task, 0),
 		N : 0,
+		TaskIdx: 0,
     }
 	_,err := fmt.Scan(&app.N)
 	if err!= nil {
         log.Fatal(err)
     }
 	
-	app.Queue = append(app.Queue, *models.AddTask(6,2,3,4,5))
-	app.Queue = append(app.Queue, *models.AddTask(7,3,4,5,1))
+	for i := 1; i < 7; i++ {
+		app.Queue[i] = *models.AddTask(5+i, 0,0,3,3)
+		app.TaskIdx = i
+		//fmt.Println("Init idx: ",app.TaskIdx)
+	}
 
     http.HandleFunc("/tasks", app.GetTasks)
     http.HandleFunc("/tasks/add", app.AddTask)

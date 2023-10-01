@@ -12,18 +12,17 @@ import (
 
 func (app *App) GetTasks(w http.ResponseWriter, r *http.Request) {
 	for len(app.Queue) > 0 && len(app.QueueRunning) < app.N {
+		fmt.Println("Started transition")
 		app.TransitionTask()
-		// fmt.Println("Длинна очереди:", len(app.Queue))
-		// fmt.Println("Длинна процессов:", len(app.QueueRunning), app.N)
     }
 
-	w.Write([]byte("Queue of tasks:\n\n"))
+	w.Write([]byte("----Queue of tasks:----\n\n"))
 	WriteQueue(w, app.Queue)
 
-	w.Write([]byte("Queue of running tasks:\n\n"))
+	w.Write([]byte("\n----Queue of running tasks:----\n\n"))
 	WriteQueue(w, app.QueueRunning)
 
-	w.Write([]byte("Queue of done tasks:\n\n"))
+	w.Write([]byte("\n----Queue of done tasks:----\n\n"))
 	WriteQueue(w, app.QueueDone)
 }
 
@@ -44,18 +43,23 @@ func (app *App) AddTask(w http.ResponseWriter, r *http.Request) {
 	task.StatementTime = time.Now().Local().Format(time.ANSIC)
 	task.StartTime = ""
 	task.EndTime = ""
-	app.Queue = append(app.Queue, task)	
+	idx := app.TaskIdx + 1
+	fmt.Println("Idx then add: ", idx)
+	app.TaskIdx++
+	app.Queue[idx] = task
 }
 
 func (app *App) TransitionTask() {
-	task := app.Queue[0]
+	key := app.TaskIdx - len(app.Queue) + 1
+	task := app.Queue[key]
+	fmt.Println(key, task)
 	task.StartTime = time.Now().Local().Format(time.ANSIC)
-	app.QueueRunning = append(app.QueueRunning, task)
-	go app.startTask(&task)
-	app.Queue = app.Queue[:len(app.Queue)-1]
+	app.QueueRunning[key] = task
+	delete(app.Queue, key)
+	go app.startTask(key)
 }
 
-func WriteQueue(w http.ResponseWriter, q []models.Task) {
+func WriteQueue(w http.ResponseWriter, q map[int]models.Task) {
 	for num, t := range q {
 		js, err := json.Marshal(t)
 		//js, err := json.MarshalIndent(t,"","\t")
@@ -63,19 +67,24 @@ func WriteQueue(w http.ResponseWriter, q []models.Task) {
             http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
         }
-		taskText := []byte(fmt.Sprintf("Task %d: %s\n", num+1, js))
+		taskText := []byte(fmt.Sprintf("Task %d: %s\n", num, js))
 		w.Write(taskText)
 	}
 }
 
-func (app *App) startTask(task *models.Task) {
-	fmt.Println("Start task ", task)
+func (app *App) startTask(key int) {
+	fmt.Println("Start task ")
+	task := app.QueueRunning[key]
 	res := task.N1
 	for n:=0; n < task.N; n++ {
 		res += task.D
 		task.Iteration = n
-		task.N1 = 0
 		fmt.Println(task.Iteration)
+		app.QueueRunning[key] = task
 		time.Sleep(time.Duration(task.I) * time.Second)
 	}
+	task.EndTime = time.Now().Local().Format(time.ANSIC)
+	app.QueueDone[key] = task
+	fmt.Println("task complited")
+	delete(app.QueueRunning, key)
 }
