@@ -17,13 +17,13 @@ func (app *App) GetTasks(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println("Длинна процессов:", len(app.QueueRunning), app.N)
     }
 
-	w.Write([]byte("Queue of tasks:\n"))
+	w.Write([]byte("Queue of tasks:\n\n"))
 	WriteQueue(w, app.Queue)
 
-	w.Write([]byte("Queue of running tasks:\n"))
+	w.Write([]byte("Queue of running tasks:\n\n"))
 	WriteQueue(w, app.QueueRunning)
 
-	w.Write([]byte("Queue of done tasks:\n"))
+	w.Write([]byte("Queue of done tasks:\n\n"))
 	WriteQueue(w, app.QueueDone)
 }
 
@@ -56,15 +56,15 @@ func (app *App) TransitionTask() {
 }
 
 func WriteQueue(w http.ResponseWriter, q []models.Task) {
-	for _, t := range q {
+	for num, t := range q {
 		js, err := json.Marshal(t)
 		//js, err := json.MarshalIndent(t,"","\t")
 		if err!= nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
         }
-		w.Write(js)
-		w.Write([]byte("\n"))
+		taskText := []byte(fmt.Sprintf("Task %d: %s\n", num+1, js))
+		w.Write(taskText)
 	}
 }
 
