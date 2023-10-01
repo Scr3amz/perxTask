@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/Scr3amz/perxTask/pkg/models"
 )
@@ -11,23 +12,27 @@ import (
 
 func main(){
 	
-	n := 0 
-	var d, n1, i, ttl float64
-	queue := make([]models.Task, 0)
-	queueRunning := make([]models.Task, 0)
+	// n := 0 
+	// var d, n1, i, ttl float64
+	// queue := make([]models.Task, 0)
+	// queueRunning := make([]models.Task, 0)
 
 
-	for n != -1 {
-		fmt.Scan(&n, &d, &n1, &i, &ttl)
-		task := *models.AddTask(n, d, n1, i, ttl)
-		queue = append(queue, task)
+	// for n != -1 {
+	// 	fmt.Scan(&n, &d, &n1, &i, &ttl)
+	// 	task := *models.AddTask(n, d, n1, i, ttl)
+	// 	queue = append(queue, task)
 
-		fmt.Println(jsconConvert(task))
+	// 	fmt.Println(jsconConvert(task))
 
-		if len(queueRunning) < 2 {
-			transition(&queue, &queueRunning)
-		}
-		printData(queue,queueRunning)
+	// 	if len(queueRunning) < 2 {
+	// 		transition(&queue, &queueRunning)
+	// 	}
+	// 	printData(queue,queueRunning)
+	// }
+	for i:=0; i<10; i++ {
+		fmt.Println(i)
+		time.Sleep(time.Second * 2)
 	}
 }
 
