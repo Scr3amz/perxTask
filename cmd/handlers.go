@@ -13,17 +13,17 @@ import (
 func (app *App) GetTasks(w http.ResponseWriter, r *http.Request) {
 	for len(app.Queue) > 0 && len(app.QueueRunning) < app.N {
 		fmt.Println("Started transition")
-		app.TransitionTask()
+		app.transitionTask()
     }
 
 	w.Write([]byte("----Queue of tasks:----\n\n"))
-	WriteQueue(w, app.Queue)
+	writeQueue(w, app.Queue)
 
 	w.Write([]byte("\n----Queue of running tasks:----\n\n"))
-	WriteQueue(w, app.QueueRunning)
+	writeQueue(w, app.QueueRunning)
 
 	w.Write([]byte("\n----Queue of done tasks:----\n\n"))
-	WriteQueue(w, app.QueueDone)
+	writeQueue(w, app.QueueDone)
 }
 
 func (app *App) AddTask(w http.ResponseWriter, r *http.Request) {
@@ -49,17 +49,17 @@ func (app *App) AddTask(w http.ResponseWriter, r *http.Request) {
 	app.Queue[idx] = task
 }
 
-func (app *App) TransitionTask() {
+func (app *App) transitionTask() {
 	key := app.TaskIdx - len(app.Queue) + 1
 	task := app.Queue[key]
 	fmt.Println(key, task)
 	task.StartTime = time.Now().Local().Format(time.ANSIC)
 	app.QueueRunning[key] = task
 	delete(app.Queue, key)
-	go app.startTask(key)
+	go app.runTask(key)
 }
 
-func WriteQueue(w http.ResponseWriter, q map[int]models.Task) {
+func writeQueue(w http.ResponseWriter, q map[int]models.Task) {
 	for num, t := range q {
 		js, err := json.Marshal(t)
 		//js, err := json.MarshalIndent(t,"","\t")
@@ -72,7 +72,7 @@ func WriteQueue(w http.ResponseWriter, q map[int]models.Task) {
 	}
 }
 
-func (app *App) startTask(key int) {
+func (app *App) runTask(key int) {
 	fmt.Println("Start task ")
 	task := app.QueueRunning[key]
 	res := task.N1
@@ -87,4 +87,9 @@ func (app *App) startTask(key int) {
 	app.QueueDone[key] = task
 	fmt.Println("task complited")
 	delete(app.QueueRunning, key)
+	go func(key int) {
+		time.Sleep(time.Duration(task.TTL) * time.Second)
+		delete(app.QueueDone, key)
+		fmt.Println("task deleted")
+	}(key)
 }

@@ -41,7 +41,7 @@ func main() {
     }
 	
 	for i := 1; i < 7; i++ {
-		app.Queue[i] = *models.AddTask(5+i, 0,0,3,3)
+		app.Queue[i] = *models.AddTask(5+i, 0,0,2,10)
 		app.TaskIdx = i
 		//fmt.Println("Init idx: ",app.TaskIdx)
 	}
