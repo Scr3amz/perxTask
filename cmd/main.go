@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/Scr3amz/perxTask/pkg/models"
 )
@@ -23,6 +24,7 @@ type App struct {
 	QueueRunning []models.Task
 	QueueDone []models.Task
 	N int
+	Wg sync.WaitGroup
 }
 
 func main() {
@@ -32,14 +34,18 @@ func main() {
         QueueRunning: make([]models.Task, 0),
         QueueDone: make([]models.Task, 0),
 		N : 0,
+		Wg: sync.WaitGroup{},
     }
 	_,err := fmt.Scan(&app.N)
 	if err!= nil {
         log.Fatal(err)
     }
 	
-	app.Queue = append(app.Queue, *models.AddTask(6,2,3,4,5))
-	app.Queue = append(app.Queue, *models.AddTask(7,3,4,5,1))
+	for i:=0 ; i < 6; i++ {
+		app.Queue = append(app.Queue, *models.AddTask(i,1,1,2,1))
+	}
+	
+
 
     http.HandleFunc("/tasks", app.GetTasks)
     http.HandleFunc("/tasks/add", app.AddTask)

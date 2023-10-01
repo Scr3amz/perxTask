@@ -20,10 +20,10 @@ func (app *App) GetTasks(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Queue of tasks:\n\n"))
 	WriteQueue(w, app.Queue)
 
-	w.Write([]byte("Queue of running tasks:\n\n"))
+	w.Write([]byte("\nQueue of running tasks:\n\n"))
 	WriteQueue(w, app.QueueRunning)
 
-	w.Write([]byte("Queue of done tasks:\n\n"))
+	w.Write([]byte("\nQueue of done tasks:\n\n"))
 	WriteQueue(w, app.QueueDone)
 }
 
@@ -48,11 +48,15 @@ func (app *App) AddTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) TransitionTask() {
-	task := app.Queue[0]
+	task := app.Queue[len(app.Queue)-1]
 	task.StartTime = time.Now().Local().Format(time.ANSIC)
 	app.QueueRunning = append(app.QueueRunning, task)
-	go app.startTask(&task)
+	taskIdx := len(app.QueueRunning) - 1
 	app.Queue = app.Queue[:len(app.Queue)-1]
+	go func() {
+		app.startTask(&app.QueueRunning[taskIdx])
+	}()
+	
 }
 
 func WriteQueue(w http.ResponseWriter, q []models.Task) {
@@ -74,7 +78,7 @@ func (app *App) startTask(task *models.Task) {
 	for n:=0; n < task.N; n++ {
 		res += task.D
 		task.Iteration = n
-		task.N1 = 0
+		//task.N1 = 0
 		fmt.Println(task.Iteration)
 		time.Sleep(time.Duration(task.I) * time.Second)
 	}
