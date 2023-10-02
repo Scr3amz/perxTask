@@ -1,2 +1,2 @@
 # perxTask
-https://github.com/hollizzy/perx-go-test#readme
+Тестовое задание на Backend-разработчика на Go 
