@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	perxtasks "github.com/Scr3amz/perxTask/internal/perxtasks"
 	"github.com/Scr3amz/perxTask/pkg/models"
 )
 
@@ -12,23 +13,8 @@ const (
 	port = ":8080"
 )
 
-/*
-Queue - Очередь задач
-QueueRunning - Задачи в процессе
-QueueDone - Выполненные задачи
-N - параллельно выполняющиеся задачи
-*/
-type App struct {
-	Queue map[int]models.Task
-	QueueRunning map[int]models.Task
-	QueueDone map[int]models.Task
-	N int
-	TaskIdx int
-}
-
 func main() {
-	app := App{
-        //Queue: make([]models.Task, 0),
+	app := perxtasks.App{
 		Queue: make(map[int]models.Task, 0),
         QueueRunning: make(map[int]models.Task, 0),
         QueueDone: make(map[int]models.Task, 0),
@@ -43,7 +29,6 @@ func main() {
 	for i := 1; i < 7; i++ {
 		app.Queue[i] = *models.AddTask(5+i, 0,0,2,10)
 		app.TaskIdx = i
-		//fmt.Println("Init idx: ",app.TaskIdx)
 	}
 
     http.HandleFunc("/tasks", app.GetTasks)
