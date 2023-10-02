@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"time"
 	"fmt"
 	"net/http"
+	"reflect"
+	"sort"
+	"time"
 
 	"github.com/Scr3amz/perxTask/pkg/models"
-
 )
 
 func (app *App) GetTasks(w http.ResponseWriter, r *http.Request) {
@@ -60,14 +61,20 @@ func (app *App) transitionTask() {
 }
 
 func writeQueue(w http.ResponseWriter, q map[int]models.Task) {
-	for num, t := range q {
-		js, err := json.Marshal(t)
-		//js, err := json.MarshalIndent(t,"","\t")
+	elems:= reflect.ValueOf(q).MapKeys()
+	keySlice := make([]int, len(elems))
+	for i:=0; i < len(elems); i++ {
+		keySlice[i] = elems[i].Interface().(int)
+	}
+	sort.Ints(keySlice)
+	for num, key := range keySlice {
+		task := q[key]
+		js, err := json.Marshal(task)
 		if err!= nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
         }
-		taskText := []byte(fmt.Sprintf("Task %d: %s\n", num, js))
+		taskText := []byte(fmt.Sprintf("Task %d: %s\n", num+1, js))
 		w.Write(taskText)
 	}
 }
